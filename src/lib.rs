@@ -1,5 +1,6 @@
 mod mqtt;
 mod graph_db;
+mod config;
 
 #[cfg(test)]
 mod tests {
