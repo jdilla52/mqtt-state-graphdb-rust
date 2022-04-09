@@ -2,7 +2,7 @@ use rumqttc::{MqttOptions, AsyncClient, QoS, Event, Incoming, EventLoop};
 use tokio::{task, time};
 use std::time::Duration;
 use std::error::Error;
-
+use log::debug;
 
 
 struct MqttConnection {
@@ -37,14 +37,14 @@ impl MqttConnection {
             println!("{:?}", event);
             match self.eventloop.poll().await {
                 Ok(Event::Incoming(Incoming::Publish(p))) => {
-                    println!("Topic: {}, Payload: {:?}", p.topic, p.payload);
+                    debug!("Topic: {}, Payload: {:?}", p.topic, p.payload);
                 }
                 Ok(Event::Incoming(i)) => {
-                    println!("Incoming = {:?}", i);
+                    debug!("Incoming = {:?}", i);
                 }
-                Ok(Event::Outgoing(o)) => println!("Outgoing = {:?}", o),
+                Ok(Event::Outgoing(o)) => debug!("Outgoing = {:?}", o),
                 Err(e) => {
-                    println!("Error = {:?}", e);
+                    debug!("Error = {:?}", e);
                 }
             }
         }
@@ -59,6 +59,8 @@ mod test_eval{
     #[tokio::test]
     async fn test_control_construct() {
         // connection_rumqtt().await;
+        env_logger::init();
+
         let mut client = MqttConnection::new(
             "test_client".to_string(),
             "localhost".to_string(),
