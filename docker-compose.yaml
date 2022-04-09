@@ -10,8 +10,21 @@ services:
     ports:
       - "1883:1883"
       - "9090:9090"
-#    network_mode: "host"
     volumes:
       - ./compose/mosquitto/conf:/mosquitto/config
       - ./compose/mosquitto/data:/mosquitto/data
       - ./compose/mosquitto/log:/mosquitto/log
+  neo4j:
+    image: neo4j:4.4.4
+    hostname: neo4j
+    container_name: neo4j
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+#    depends_on:
+#      - kafka
+    volumes:
+      - ./neo4j/plugins:/plugins
+    environment:
+#      NEO4J_AUTH: neo4j/streams
+      NEO4J_dbms_logs_debug_level: DEBUG
