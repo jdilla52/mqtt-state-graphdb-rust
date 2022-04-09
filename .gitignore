@@ -18,3 +18,5 @@ Cargo.lock
 .idea/
 
 compose/mosquitto/log/
+
+compose/mosquitto/data/
