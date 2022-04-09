@@ -4,28 +4,29 @@ use std::time::Duration;
 use std::error::Error;
 use log::debug;
 use tokio::task::JoinHandle;
+use crate::config::MqttSettings;
 
 
-struct MqttConnection {
+pub struct MqttConnection {
     client: AsyncClient,
     eventloop: EventLoop,
 }
 
 
 impl MqttConnection {
-    async fn new(client_id: String, host:String, port: u16, topic:String)->MqttConnection{
-        let (client, eventloop) = MqttConnection::connection_rumqtt(client_id, host, port, topic).await;
+    pub(crate) async fn new(settings:MqttSettings) ->MqttConnection{
+        let (client, eventloop) = MqttConnection::connection_rumqtt(settings).await;
         MqttConnection{
             client, eventloop
         }
     }
 
-    async fn connection_rumqtt(client_id:String, host:String, port:u16, topic: String) -> (AsyncClient, EventLoop) {
-        let mut mqttoptions = MqttOptions::new(client_id, host, port);
+    async fn connection_rumqtt(settings:MqttSettings) -> (AsyncClient, EventLoop) {
+        let mut mqttoptions = MqttOptions::new(settings.client_id, settings.address, settings.port);
         mqttoptions.set_keep_alive(Duration::from_secs(5));
 
         let (mut client, mut eventloop) = AsyncClient::new(mqttoptions, 10);
-        client.subscribe(topic, QoS::AtMostOnce).await.unwrap_or_else(|e|{
+        client.subscribe(settings.mqtt_topic, settings.mqtt_qos.into()).await.unwrap_or_else(|e|{
             println!("failed to subscribe {:?}", e);
         });
 

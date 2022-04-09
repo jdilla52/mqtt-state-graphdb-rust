@@ -8,9 +8,10 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct MqttSettings {
     pub(crate) address: String,
+    pub(crate) port: u16,
     pub(crate) client_id: String,
-    pub(crate) mqtt_topic: Vec<String>,
-    pub(crate) mqtt_qos: Vec<i32>,
+    pub(crate) mqtt_topic:String,
+    pub(crate) mqtt_qos: u8,
     pub(crate) will_message: String,
     pub(crate) will_topic: String,
     pub(crate) user: String,
@@ -20,10 +21,11 @@ pub struct MqttSettings {
 impl Default for MqttSettings {
     fn default() -> MqttSettings {
         MqttSettings {
-            address: "tcp://127.0.0.1:1883".to_string(),
+            address: "tcp://127.0.0.1".to_string(),
+            port: 1883,
             client_id: "test_client".to_string(),
-            mqtt_topic: vec!["#/".to_string()],
-            mqtt_qos: vec![1],
+            mqtt_topic:"#".to_string(),
+            mqtt_qos:0,
             will_message: "Bridge node has failed".to_string(),
             will_topic: "test/dead".to_string(),
             user: "test".to_string(),
