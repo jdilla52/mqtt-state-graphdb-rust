@@ -32,12 +32,6 @@ impl Default for MqttSettings {
     }
 }
 
-// #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
-// pub struct TopicSettings {
-//     mqtt_topic: Vec<String>,
-//     kafka_topic: String,
-// }
-
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct GraphdbSettings {
     address: String,
@@ -83,7 +77,7 @@ mod tests {
 
     #[test]
     fn test_parse() {
-        let t: StateLisenerSettings = confy::load_path("default./config").unwrap();
+        let t: StateLisenerSettings = confy::load_path("default/StateListener.config").unwrap();
     }
     //     let t = StatsSettings {
     //         mqtt_settings: MqttSettings {
