@@ -1,0 +1,17 @@
+version: "3"
+services:
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    container_name: mosquitto
+    expose:
+      - 1883
+      - 8000
+      - 8080
+    ports:
+      - "1883:1883"
+      - "9090:9090"
+#    network_mode: "host"
+    volumes:
+      - ./compose/mosquitto/conf:/mosquitto/config
+      - ./compose/mosquitto/data:/mosquitto/data
+      - ./compose/mosquitto/log:/mosquitto/log
