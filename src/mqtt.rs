@@ -3,6 +3,7 @@ use tokio::{task, time};
 use std::time::Duration;
 use std::error::Error;
 use log::debug;
+use tokio::task::JoinHandle;
 
 
 struct MqttConnection {
@@ -31,10 +32,8 @@ impl MqttConnection {
         (client, eventloop)
     }
 
-    pub async fn listen(&mut self){
+    pub async fn listen(&mut self) {
         loop {
-            let event = self.eventloop.poll().await;
-            println!("{:?}", event);
             match self.eventloop.poll().await {
                 Ok(Event::Incoming(Incoming::Publish(p))) => {
                     debug!("Topic: {}, Payload: {:?}", p.topic, p.payload);
