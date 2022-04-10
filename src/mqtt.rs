@@ -12,7 +12,14 @@ pub struct MqttConnection {
     eventloop: EventLoop,
 }
 
-
+fn qos_from_u8(orig: u8) -> QoS {
+    match orig {
+        0x0 => QoS::ExactlyOnce,
+        0x1 => QoS::ExactlyOnce,
+        0x2 => QoS::ExactlyOnce,
+        _ => panic!("failed parse qos"),
+    }
+}
 impl MqttConnection {
     pub(crate) async fn new(settings:MqttSettings) ->MqttConnection{
         let (client, eventloop) = MqttConnection::connection_rumqtt(settings).await;
@@ -26,7 +33,9 @@ impl MqttConnection {
         mqttoptions.set_keep_alive(Duration::from_secs(5));
 
         let (mut client, mut eventloop) = AsyncClient::new(mqttoptions, 10);
-        client.subscribe(settings.mqtt_topic, settings.mqtt_qos.into()).await.unwrap_or_else(|e|{
+
+        let qos: QoS = qos_from_u8(settings.mqtt_qos);
+        client.subscribe(settings.mqtt_topic, qos).await.unwrap_or_else(|e|{
             println!("failed to subscribe {:?}", e);
         });
 
@@ -62,10 +71,7 @@ mod test_eval{
         env_logger::init();
 
         let mut client = MqttConnection::new(
-            "test_client".to_string(),
-            "localhost".to_string(),
-            1883,
-            "test".to_string()
+           MqttSettings::default()
         ).await;
         client.listen().await;
     }

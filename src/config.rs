@@ -36,9 +36,9 @@ impl Default for MqttSettings {
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct GraphdbSettings {
-    address: String,
-    user: String,
-    pass: String
+    pub(crate) address: String,
+    pub(crate) user: String,
+    pub(crate) pass: String
 }
 
 impl GraphdbSettings {
@@ -48,9 +48,9 @@ impl GraphdbSettings {
          }
      }
 
-    fn default()-> GraphdbSettings {
+    pub(crate) fn default() -> GraphdbSettings {
         GraphdbSettings{
-            address: "tcp://127.0.0.1:1883".to_string(),
+            address: "127.0.0.1:7687".to_string(),
             user: "neo4j".to_string(),
             pass: "test".to_string()
         }
