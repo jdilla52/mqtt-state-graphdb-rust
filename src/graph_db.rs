@@ -50,31 +50,34 @@ impl Graphdb {
         let mut txn = self.graph.start_txn().await.unwrap();
 
         let merges: Vec<&str> = topic.split("/").collect();
-        // let var_names: Vec<&str> = merges.iter().enumerate().map(|(i, v)|{
-        //     format!("{v}_{i}", v=v, i=i)
-        // }).collect();
         let mut pattern = "MERGE (root :ROOT {name: 'root'})".to_string(); // root
 
         // this will result in duplicate dodes where if a user places a value halfway through the path.
         // I think this is fine and should make queries substantially faster as we can just grab all values.
-
         let m0 = merges[0];
         // let vn0 = var_names[0];
         if merges.len() == 1{
-            pattern = pattern + &format!(" MERGE ({name} :Value {{name: '{v}'}})", name=m0, v = m0); // first node
-            pattern = pattern + &format!(" MERGE (root) <-[:SUB]- ({v})", v=m0); // connect two above
+            let name = format!("{}_{}", "v", 0);
+            pattern = pattern + &format!(" MERGE ({name} :Value {{name: '{v}'}})", name=name, v = m0); // first node
+            pattern = pattern + &format!(" MERGE (root) <-[:SUB]- ({v})", v=name); // connect two above
         }
         else {
-            pattern =pattern + &format!(" MERGE ({v} :Path {{subpath: '{v}'}})", v=m0); // first node
-            pattern =pattern + &format!(" MERGE (root) <-[:SUB]- ({v})", v=m0); // connect two above
-        
+            let name = format!("{}_{}", "v", 0);
+            pattern =pattern + &format!(" MERGE ({name} :Path {{subpath: '{v}'}})", name=name, v=m0); // first node
+            pattern =pattern + &format!(" MERGE (root) <-[:SUB]- ({v})", v=name); // connect two above
+
             for (i, v) in (&merges[1..merges.len()-1]).iter().enumerate(){
-                pattern = pattern + &format!(" MERGE ({v} :Path {{subpath: '{v}'}})", v=v);
-                pattern = pattern + &format!(" MERGE ({v0}) <-[:SUB]- ({v1})", v0=v, v1=merges[i]); // connect current to previous
+                let name = format!("{}_{}", "v", i+1);
+                let prev_name = format!("{}_{}", "v", i);
+                pattern = pattern + &format!(" MERGE ({name} :Path {{subpath: '{v}'}})", name=name, v=v);
+                pattern = pattern + &format!(" MERGE ({v0}) <-[:SUB]- ({v1})", v0=prev_name, v1=name); // connect current to previous
             }
-            let ml = merges.last().unwrap();
-            pattern = pattern + &format!(" MERGE ({v} :Value {data})", v = ml, data=data); // first node // TODO add actual value
-            pattern = pattern + &format!(" MERGE ({v0}) <-[:SUB]- ({v1})", v0=merges[merges.len()-2], v1=ml); // connect
+            let ml_data = merges.last().unwrap();
+            let l = merges.len();
+            let name = format!("{}_{}", "v", l-1);// TODO total garbage
+            let prev_name = format!("{}_{}", "v", l-2);
+            pattern = pattern + &format!(" MERGE ({name} :Value {data})", name=name, data=data); // first node
+            pattern = pattern + &format!(" MERGE ({v0}) <-[:SUB]- ({v1})", v0=prev_name, v1=name); // connect
         }
 
         debug!("pattern: {}", pattern);
