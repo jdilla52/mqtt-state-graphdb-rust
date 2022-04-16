@@ -1,5 +1,5 @@
 use crate::config::MqttSettings;
-use log::debug;
+use log::{debug, error};
 use rumqttc::{AsyncClient, Event, EventLoop, Incoming, MqttOptions, QoS};
 use std::error::Error;
 use std::str::Bytes;
@@ -50,7 +50,10 @@ impl MqttConnection {
             match self.eventloop.poll().await {
                 Ok(Event::Incoming(Incoming::Publish(p))) => {
                     debug!("Topic: {}, Payload: {:?}", p.topic, p.payload);
-                    action.create_path(p.topic, p.payload.to_vec()).await.unwrap();
+                    match action.create_path(p.topic, p.payload.to_vec()).await {
+                        Ok(t)=>debug!("successful"),
+                        Err(e)=> error!("failed to insert: {:?}", e)
+                    }
                 }
                 Ok(Event::Incoming(i)) => {
                     debug!("Incoming = {:?}", i);
