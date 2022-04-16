@@ -1,7 +1,9 @@
+use std::fmt::Display;
 use crate::config::GraphdbSettings;
 use log::debug;
 use neo4rs::{query, Graph, Node};
 use std::sync::Arc;
+use std::io::Bytes;
 
 async fn example_query(graph: Arc<Graph>) {
     for _ in 1..=42 {
@@ -48,7 +50,7 @@ impl Graphdb {
         Graphdb { settings, graph }
     }
 
-    pub async fn create_path(&self, topic: String, data: String) {
+    pub async fn create_path(&self, topic: String, data: Vec<u8>) -> neo4rs::Result<()> {
         let mut txn = self.graph.start_txn().await.unwrap();
 
         let merges: Vec<&str> = topic.split("/").collect();
@@ -60,41 +62,31 @@ impl Graphdb {
         // let vn0 = var_names[0];
         if merges.len() == 1 {
             let name = format!("{}_{}", "v", 0);
-            pattern = pattern
-                + &format!(
-                    " MERGE ({name} :Value {{name: '{v}'}})",
-                    name = name,
-                    v = m0
-                ); // first node
+            pattern = pattern + &format!(" MERGE ({n} :Value {{name: '{v}'}})", n = name, v = m0);
             pattern = pattern + &format!(" MERGE (root) <-[:SUB]- ({v})", v = name);
         // connect two above
         } else {
             // first node connecting to root
-            pattern = pattern
-                + &format!(
-                    " MERGE (v{name} :Path {{subpath: '{d}'}})",
-                    name = 0,
-                    d = m0
-                ); // first node
-            pattern = pattern + &format!(" MERGE (root) <-[:SUB]- (v{v})", v = 0); // connect two above
+            pattern = pattern + &format!(" MERGE (v{n} :Path {{subpath: '{d}'}})", n = 0, d = m0);
+            pattern = pattern + &format!(" MERGE (root) <-[:SUB]- (v{v})", v = 0);
 
             // iterate nodes conecting to previous
             for (i, v) in (&merges[1..merges.len() - 1]).iter().enumerate() {
-                pattern = pattern
-                    + &format!(
-                        " MERGE (v{name} :Path {{subpath: '{v}'}})",
-                        name = i + 1,
+                // current node
+                pattern = pattern+ &format!(" MERGE (v{n} :Path {{subpath: '{v}'}})",
+                        n = i + 1,
                         v = v
                     );
+                // connect current to previous node i
                 pattern =
                     pattern + &format!(" MERGE (v{v0}) <-[:SUB]- (v{v1})", v0 = i, v1 = i + 1);
-                // connect current to previous
+
             }
 
             // last node as it has data
             let ml_data = merges.last().unwrap();
             let l = merges.len() - 1;
-            pattern = pattern + &format!(" MERGE (v{name} :Value {data})", name = l, data = data); // first node
+            // pattern = pattern + &format!(" MERGE (v{name} :Value {data})", name = l, data = data); // first node
             pattern = pattern + &format!(" MERGE (v{v0}) <-[:SUB]- (v{v1})", v0 = l - 1, v1 = l);
             // connect
         }
@@ -102,7 +94,7 @@ impl Graphdb {
         debug!("pattern: {}", pattern);
 
         txn.run(query(pattern.as_str())).await.unwrap();
-        txn.commit().await.unwrap(); //or txn.rollback().await.unwrap();
+        txn.commit().await
     }
 }
 
@@ -118,32 +110,32 @@ mod graph {
         let client = Graphdb::new(GraphdbSettings::default()).await;
         // test single path
         client
-            .create_path("test".to_string(), "hello".to_string())
-            .await;
+            .create_path("test".to_string(), "hello".as_bytes().to_vec())
+            .await.unwrap();
     }
 
     #[tokio::test]
     async fn test_create_deep_path() {
         let client = Graphdb::new(GraphdbSettings::default()).await;
         // test single path
-        client
+        let r = client
             .create_path(
                 "test/test2/hello".to_string(),
-                "{name: 'value', test_val:'hello'}".to_string(),
+                "{name: 'value', test_val:'hello'}".as_bytes().to_vec()
             )
-            .await;
+            .await.unwrap();
     }
 
     #[tokio::test]
     async fn test_create_deep_path_duplicate() {
         let client = Graphdb::new(GraphdbSettings::default()).await;
         // test single path
-        client
+        let r = client
             .create_path(
                 "test/tes5/test".to_string(),
-                "{name: 'value', test_val:'hello'}".to_string(),
+                "{name: 'value', test_val:'hello'}".as_bytes().to_vec()
             )
-            .await;
+            .await.unwrap();
     }
 
     #[tokio::test]

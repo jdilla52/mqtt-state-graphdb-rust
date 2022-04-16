@@ -1,4 +1,6 @@
+use std::io::Bytes;
 use crate::config::StateLisenerSettings;
+use crate::graph_db::Graphdb;
 use crate::mqtt::MqttConnection;
 
 pub struct StateListener {
@@ -9,7 +11,9 @@ impl StateListener {
     fn new(settings: StateLisenerSettings) -> StateListener {
         StateListener { settings }
     }
-    fn run(&self) {
-        let connection = MqttConnection::new(self.settings.mqtt_settings.clone());
+    async fn run(&self) {
+        let mut connection = MqttConnection::new(self.settings.mqtt_settings.clone()).await;
+        let gdb = Graphdb::new(self.settings.graphdb_settings.clone()).await;
+        connection.listen(gdb).await;
     }
 }

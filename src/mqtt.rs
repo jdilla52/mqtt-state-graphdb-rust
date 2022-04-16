@@ -2,9 +2,11 @@ use crate::config::MqttSettings;
 use log::debug;
 use rumqttc::{AsyncClient, Event, EventLoop, Incoming, MqttOptions, QoS};
 use std::error::Error;
+use std::str::Bytes;
 use std::time::Duration;
 use tokio::task::JoinHandle;
 use tokio::{task, time};
+use crate::graph_db::Graphdb;
 
 pub struct MqttConnection {
     client: AsyncClient,
@@ -43,11 +45,12 @@ impl MqttConnection {
         (client, eventloop)
     }
 
-    pub async fn listen(&mut self) {
+    pub async fn listen(&mut self, action: Graphdb) {
         loop {
             match self.eventloop.poll().await {
                 Ok(Event::Incoming(Incoming::Publish(p))) => {
                     debug!("Topic: {}, Payload: {:?}", p.topic, p.payload);
+                    action.create_path(p.topic, p.payload.to_vec()).await.unwrap();
                 }
                 Ok(Event::Incoming(i)) => {
                     debug!("Incoming = {:?}", i);
@@ -66,14 +69,15 @@ impl MqttConnection {
 
 #[cfg(test)]
 mod test_eval {
+    use crate::config::GraphdbSettings;
     use super::*;
 
     #[tokio::test]
     async fn test_control_construct() {
         // connection_rumqtt().await;
         env_logger::init();
-
+        let gdb = Graphdb::new(GraphdbSettings::default()).await;
         let mut client = MqttConnection::new(MqttSettings::default()).await;
-        client.listen().await;
+        client.listen(gdb).await;
     }
 }
