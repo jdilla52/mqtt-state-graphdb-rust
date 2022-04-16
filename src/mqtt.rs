@@ -50,10 +50,13 @@ impl MqttConnection {
             match self.eventloop.poll().await {
                 Ok(Event::Incoming(Incoming::Publish(p))) => {
                     debug!("Topic: {}, Payload: {:?}", p.topic, p.payload);
-                    match action.create_path(p.topic, p.payload.to_vec()).await {
-                        Ok(t)=>debug!("successful"),
-                        Err(e)=> error!("failed to insert: {:?}", e)
-                    }
+                    let act = action.clone();
+                    tokio::spawn(async move {
+                        match act.create_path(p.topic, p.payload.to_vec()).await {
+                            Ok(t)=>debug!("successful"),
+                            Err(e)=> error!("failed to insert: {:?}", e)
+                        }
+                    });
                 }
                 Ok(Event::Incoming(i)) => {
                     debug!("Incoming = {:?}", i);

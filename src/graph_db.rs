@@ -35,6 +35,7 @@ async fn example_transaction(graph: Arc<Graph>) {
     txn.commit().await.unwrap();
 }
 
+#[derive(Clone)]
 pub struct Graphdb {
     settings: GraphdbSettings,
     graph: Arc<Graph>,
