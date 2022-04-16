@@ -1,4 +1,5 @@
 use crate::config::MqttSettings;
+use crate::graph_db::Graphdb;
 use log::{debug, error};
 use rumqttc::{AsyncClient, Event, EventLoop, Incoming, MqttOptions, QoS};
 use std::error::Error;
@@ -6,7 +7,6 @@ use std::str::Bytes;
 use std::time::Duration;
 use tokio::task::JoinHandle;
 use tokio::{task, time};
-use crate::graph_db::Graphdb;
 
 pub struct MqttConnection {
     client: AsyncClient,
@@ -45,16 +45,18 @@ impl MqttConnection {
         (client, eventloop)
     }
 
+    // todo try to make generic as possible
     pub async fn listen(&mut self, action: Graphdb) {
         loop {
             match self.eventloop.poll().await {
                 Ok(Event::Incoming(Incoming::Publish(p))) => {
                     debug!("Topic: {}, Payload: {:?}", p.topic, p.payload);
+                    // todo move to action it should define its own threading scheme
                     let act = action.clone();
                     tokio::spawn(async move {
                         match act.create_path(p.topic, p.payload.to_vec()).await {
-                            Ok(t)=>debug!("successful"),
-                            Err(e)=> error!("failed to insert: {:?}", e)
+                            Ok(t) => debug!("successful"),
+                            Err(e) => error!("failed to insert: {:?}", e),
                         }
                     });
                 }
@@ -75,8 +77,8 @@ impl MqttConnection {
 
 #[cfg(test)]
 mod test_eval {
-    use crate::config::GraphdbSettings;
     use super::*;
+    use crate::config::GraphdbSettings;
 
     #[tokio::test]
     async fn test_control_construct() {

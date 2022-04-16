@@ -1,9 +1,9 @@
-use std::fmt::Display;
 use crate::config::GraphdbSettings;
 use log::debug;
 use neo4rs::{query, Graph, Node};
-use std::sync::Arc;
+use std::fmt::Display;
 use std::io::Bytes;
+use std::sync::Arc;
 
 async fn example_query(graph: Arc<Graph>) {
     for _ in 1..=42 {
@@ -74,14 +74,11 @@ impl Graphdb {
             // iterate nodes conecting to previous
             for (i, v) in (&merges[1..merges.len() - 1]).iter().enumerate() {
                 // current node
-                pattern = pattern+ &format!(" MERGE (v{n} :Path {{subpath: '{v}'}})",
-                        n = i + 1,
-                        v = v
-                    );
+                pattern =
+                    pattern + &format!(" MERGE (v{n} :Path {{subpath: '{v}'}})", n = i + 1, v = v);
                 // connect current to previous node i
                 pattern =
                     pattern + &format!(" MERGE (v{v0}) <-[:SUB]- (v{v1})", v0 = i, v1 = i + 1);
-
             }
 
             // last node as it has data
@@ -112,7 +109,8 @@ mod graph {
         // test single path
         client
             .create_path("test".to_string(), "hello".as_bytes().to_vec())
-            .await.unwrap();
+            .await
+            .unwrap();
     }
 
     #[tokio::test]
@@ -122,9 +120,10 @@ mod graph {
         let r = client
             .create_path(
                 "test/test2/hello".to_string(),
-                "{name: 'value', test_val:'hello'}".as_bytes().to_vec()
+                "{name: 'value', test_val:'hello'}".as_bytes().to_vec(),
             )
-            .await.unwrap();
+            .await
+            .unwrap();
     }
 
     #[tokio::test]
@@ -134,9 +133,10 @@ mod graph {
         let r = client
             .create_path(
                 "test/tes5/test".to_string(),
-                "{name: 'value', test_val:'hello'}".as_bytes().to_vec()
+                "{name: 'value', test_val:'hello'}".as_bytes().to_vec(),
             )
-            .await.unwrap();
+            .await
+            .unwrap();
     }
 
     #[tokio::test]

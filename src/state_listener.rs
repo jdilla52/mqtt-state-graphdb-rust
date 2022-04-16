@@ -1,7 +1,7 @@
-use std::io::Bytes;
 use crate::config::StateLisenerSettings;
 use crate::graph_db::Graphdb;
 use crate::mqtt::MqttConnection;
+use std::io::Bytes;
 
 pub struct StateListener {
     settings: StateLisenerSettings,
