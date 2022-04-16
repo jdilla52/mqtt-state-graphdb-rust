@@ -1,9 +1,9 @@
-use std::time::Duration;
-use rumqttc::{AsyncClient, MqttOptions, QoS};
-use tokio::time;
 use mqtt_state_graph_db_rust::config::{MqttSettings, StateLisenerSettings};
-use rand::{Rng, thread_rng};
 use rand::distributions::Alphanumeric;
+use rand::{thread_rng, Rng};
+use rumqttc::{AsyncClient, MqttOptions, QoS};
+use std::time::Duration;
+use tokio::time;
 extern crate serde;
 
 use serde::{Deserialize, Serialize};
@@ -34,28 +34,25 @@ async fn main() {
     let mut rng = rand::thread_rng();
 
     for i in 1..=count {
-            let j = rng.gen_range(1..12);
-            let mut topic ="test".to_string();
+        let j = rng.gen_range(1..12);
+        let mut topic = "test".to_string();
 
-            for i in 0..j {
-                let sub_path: String = thread_rng()
-                    .sample_iter(&Alphanumeric)
-                    .take(4)
-                    .map(char::from)
-                    .collect();
+        for i in 0..j {
+            let sub_path: String = thread_rng()
+                .sample_iter(&Alphanumeric)
+                .take(4)
+                .map(char::from)
+                .collect();
 
-                topic = topic + "/" + sub_path.as_str();
-            }
+            topic = topic + "/" + sub_path.as_str();
+        }
         println!("{}", topic);
 
         client
-            .publish(topic.as_str(), QoS::ExactlyOnce, false,"hello")
+            .publish(topic.as_str(), QoS::ExactlyOnce, false, "hello")
             .await
             .unwrap();
-
     }
-
-
 
     loop {
         let event = eventloop.poll().await;
