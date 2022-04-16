@@ -37,6 +37,7 @@ impl MqttConnection {
         let qos: QoS = qos_from_u8(settings.mqtt_qos);
         client.subscribe(settings.mqtt_topic, qos).await.unwrap_or_else(|e|{
             println!("failed to subscribe {:?}", e);
+            panic!("failed to subscribe");
         });
 
         (client, eventloop)
@@ -51,8 +52,12 @@ impl MqttConnection {
                 Ok(Event::Incoming(i)) => {
                     debug!("Incoming = {:?}", i);
                 }
-                Ok(Event::Outgoing(o)) => debug!("Outgoing = {:?}", o),
+                Ok(Event::Outgoing(o)) => {
+                    debug!("Outgoing = {:?}", o);
+                },
                 Err(e) => {
+
+                    let err = format!("error: {:?}", e);
                     debug!("Error = {:?}", e);
                 }
             }

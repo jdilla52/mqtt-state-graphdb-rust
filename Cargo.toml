@@ -1,5 +1,5 @@
 [package]
-name = "mqtt-state-graphdb-rust"
+name = "mqtt-state-graph-db-rust"
 version = "0.1.0"
 edition = "2021"
 

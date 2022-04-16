@@ -49,16 +49,19 @@ impl Graphdb {
     pub async fn create_path(&self, topic: String, data: String){
         let mut txn = self.graph.start_txn().await.unwrap();
 
-
         let merges: Vec<&str> = topic.split("/").collect();
+        // let var_names: Vec<&str> = merges.iter().enumerate().map(|(i, v)|{
+        //     format!("{v}_{i}", v=v, i=i)
+        // }).collect();
         let mut pattern = "MERGE (root :ROOT {name: 'root'})".to_string(); // root
 
         // this will result in duplicate dodes where if a user places a value halfway through the path.
         // I think this is fine and should make queries substantially faster as we can just grab all values.
 
         let m0 = merges[0];
+        // let vn0 = var_names[0];
         if merges.len() == 1{
-            pattern = pattern + &format!(" MERGE ({v} :Value {{name: '{v}'}})", v = m0); // first node
+            pattern = pattern + &format!(" MERGE ({name} :Value {{name: '{v}'}})", name=m0, v = m0); // first node
             pattern = pattern + &format!(" MERGE (root) <-[:SUB]- ({v})", v=m0); // connect two above
         }
         else {
@@ -102,6 +105,13 @@ mod graph {
         let client = Graphdb::new(GraphdbSettings::default()).await;
         // test single path
         client.create_path("test/test2/hello".to_string(), "{name: 'value', test_val:'hello'}".to_string()).await;
+    }
+
+    #[tokio::test]
+    async fn test_create_deep_path_duplicate() {
+        let client = Graphdb::new(GraphdbSettings::default()).await;
+        // test single path
+        client.create_path("test/tes5/test".to_string(), "{name: 'value', test_val:'hello'}".to_string()).await;
     }
 
     #[tokio::test]
