@@ -22,44 +22,43 @@ async fn main() {
     println!("Hello, world!");
     let global: StateLisenerSettings = confy::load_path("../default/StateListener.config").unwrap();
     let settings = global.mqtt_settings;
-    let mut mqttoptions = MqttOptions::new("doesn'tmatter", settings.address, settings.port);
+    let mut mqttoptions = MqttOptions::new("doesnt_matter", settings.address, settings.port);
     mqttoptions.set_keep_alive(Duration::from_secs(5));
 
-    let (mut client, mut eventloop) = AsyncClient::new(mqttoptions, 10);
+    let count = 100;
+
+    let (mut client, mut eventloop) = AsyncClient::new(mqttoptions, count);
 
     let qos: QoS = qos_from_u8(settings.mqtt_qos);
 
     let mut rng = rand::thread_rng();
-    for i in 0..20 {
-        let j = rng.gen_range(0..12);
-        let mut topic: String = thread_rng()
-            .sample_iter(&Alphanumeric)
-            .take(10)
-            .map(char::from)
-            .collect();
 
-        for i in 0..j {
-            let sub_path: String = thread_rng()
-                .sample_iter(&Alphanumeric)
-                .take(4)
-                .map(char::from)
-                .collect();
+    for i in 1..=count {
+            let j = rng.gen_range(1..12);
+            let mut topic ="test".to_string();
 
-            topic = topic + "/" + sub_path.as_str();
-        }
+            for i in 0..j {
+                let sub_path: String = thread_rng()
+                    .sample_iter(&Alphanumeric)
+                    .take(4)
+                    .map(char::from)
+                    .collect();
+
+                topic = topic + "/" + sub_path.as_str();
+            }
+        println!("{}", topic);
 
         client
-            .publish(topic, qos, false, vec![1; i])
+            .publish(topic.as_str(), QoS::ExactlyOnce, false,"hello")
             .await
             .unwrap();
 
-        time::sleep(Duration::from_millis(1)).await;
     }
+
+
 
     loop {
         let event = eventloop.poll().await;
         println!("{:?}", event.unwrap());
     }
-    
-    
 }
