@@ -1,11 +1,10 @@
-use rumqttc::{MqttOptions, AsyncClient, QoS, Event, Incoming, EventLoop};
-use tokio::{task, time};
-use std::time::Duration;
-use std::error::Error;
-use log::debug;
-use tokio::task::JoinHandle;
 use crate::config::MqttSettings;
-
+use log::debug;
+use rumqttc::{AsyncClient, Event, EventLoop, Incoming, MqttOptions, QoS};
+use std::error::Error;
+use std::time::Duration;
+use tokio::task::JoinHandle;
+use tokio::{task, time};
 
 pub struct MqttConnection {
     client: AsyncClient,
@@ -21,24 +20,25 @@ fn qos_from_u8(orig: u8) -> QoS {
     }
 }
 impl MqttConnection {
-    pub(crate) async fn new(settings:MqttSettings) ->MqttConnection{
+    pub(crate) async fn new(settings: MqttSettings) -> MqttConnection {
         let (client, eventloop) = MqttConnection::connection_rumqtt(settings).await;
-        MqttConnection{
-            client, eventloop
-        }
+        MqttConnection { client, eventloop }
     }
 
-    async fn connection_rumqtt(settings:MqttSettings) -> (AsyncClient, EventLoop) {
+    async fn connection_rumqtt(settings: MqttSettings) -> (AsyncClient, EventLoop) {
         let mut mqttoptions = MqttOptions::new(settings.client_id, settings.address, settings.port);
         mqttoptions.set_keep_alive(Duration::from_secs(5));
 
         let (mut client, mut eventloop) = AsyncClient::new(mqttoptions, 10);
 
         let qos: QoS = qos_from_u8(settings.mqtt_qos);
-        client.subscribe(settings.mqtt_topic, qos).await.unwrap_or_else(|e|{
-            println!("failed to subscribe {:?}", e);
-            panic!("failed to subscribe");
-        });
+        client
+            .subscribe(settings.mqtt_topic, qos)
+            .await
+            .unwrap_or_else(|e| {
+                println!("failed to subscribe {:?}", e);
+                panic!("failed to subscribe");
+            });
 
         (client, eventloop)
     }
@@ -54,9 +54,8 @@ impl MqttConnection {
                 }
                 Ok(Event::Outgoing(o)) => {
                     debug!("Outgoing = {:?}", o);
-                },
+                }
                 Err(e) => {
-
                     let err = format!("error: {:?}", e);
                     debug!("Error = {:?}", e);
                 }
@@ -65,9 +64,8 @@ impl MqttConnection {
     }
 }
 
-
 #[cfg(test)]
-mod test_eval{
+mod test_eval {
     use super::*;
 
     #[tokio::test]
@@ -75,9 +73,7 @@ mod test_eval{
         // connection_rumqtt().await;
         env_logger::init();
 
-        let mut client = MqttConnection::new(
-           MqttSettings::default()
-        ).await;
+        let mut client = MqttConnection::new(MqttSettings::default()).await;
         client.listen().await;
     }
 }

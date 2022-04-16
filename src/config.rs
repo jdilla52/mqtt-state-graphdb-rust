@@ -10,7 +10,7 @@ pub struct MqttSettings {
     pub address: String,
     pub port: u16,
     pub(crate) client_id: String,
-    pub mqtt_topic:String,
+    pub mqtt_topic: String,
     pub mqtt_qos: u8,
     pub(crate) will_message: String,
     pub(crate) will_topic: String,
@@ -24,8 +24,8 @@ impl Default for MqttSettings {
             address: "ssl://test.branchviewer.com".to_string(),
             port: 1883,
             client_id: "test_client".to_string(),
-            mqtt_topic:"test".to_string(),
-            mqtt_qos:0,
+            mqtt_topic: "test".to_string(),
+            mqtt_qos: 0,
             will_message: "Bridge node has failed".to_string(),
             will_topic: "test/dead".to_string(),
             user: "test2".to_string(),
@@ -38,21 +38,27 @@ impl Default for MqttSettings {
 pub struct GraphdbSettings {
     pub(crate) address: String,
     pub(crate) user: String,
-    pub(crate) pass: String
+    pub(crate) pass: String,
 }
 
 impl GraphdbSettings {
-     fn new <A: Into<String>, B: Into<String>, C: Into<String>>(address: A, user: B, pass: C)->GraphdbSettings{
-         GraphdbSettings{
-             address: address.into(), user: user.into(), pass: pass.into()
-         }
-     }
+    fn new<A: Into<String>, B: Into<String>, C: Into<String>>(
+        address: A,
+        user: B,
+        pass: C,
+    ) -> GraphdbSettings {
+        GraphdbSettings {
+            address: address.into(),
+            user: user.into(),
+            pass: pass.into(),
+        }
+    }
 
     pub(crate) fn default() -> GraphdbSettings {
-        GraphdbSettings{
+        GraphdbSettings {
             address: "127.0.0.1:7687".to_string(),
             user: "neo4j".to_string(),
-            pass: "test".to_string()
+            pass: "test".to_string(),
         }
     }
 }
@@ -63,19 +69,18 @@ pub struct StateLisenerSettings {
     pub graphdb_settings: GraphdbSettings,
 }
 
-
 impl Default for StateLisenerSettings {
     fn default() -> Self {
-        StateLisenerSettings{
+        StateLisenerSettings {
             mqtt_settings: MqttSettings::default(),
-            graphdb_settings: GraphdbSettings::default()
+            graphdb_settings: GraphdbSettings::default(),
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::config::{StateLisenerSettings, GraphdbSettings, MqttSettings};
+    use crate::config::{GraphdbSettings, MqttSettings, StateLisenerSettings};
 
     #[test]
     fn test_parse() {

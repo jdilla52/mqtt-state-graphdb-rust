@@ -1,6 +1,6 @@
-mod mqtt;
-mod graph_db;
 pub mod config;
+mod graph_db;
+mod mqtt;
 pub mod state_listener;
 
 #[cfg(test)]
