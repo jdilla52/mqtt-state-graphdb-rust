@@ -63,28 +63,28 @@ impl Graphdb {
         // let vn0 = var_names[0];
         if merges.len() == 1 {
             let name = format!("{}_{}", "v", 0);
-            pattern = pattern + &format!(" MERGE ({n} :Value {{name: '{v}'}})", n = name, v = m0);
+            pattern = pattern + &format!(" MERGE ({n} :DATA {{name: '{v}'}})", n = name, v = m0);
             pattern = pattern + &format!(" MERGE (root) <-[:SUB]- ({v})", v = name);
         // connect two above
         } else {
             // first node connecting to root
-            pattern = pattern + &format!(" MERGE (v{n} :Path {{subpath: '{d}'}})", n = 0, d = m0);
+            pattern = pattern + &format!(" MERGE (v{n} :PATH {{name: '{d}'}})", n = 0, d = m0);
             pattern = pattern + &format!(" MERGE (root) <-[:SUB]- (v{v})", v = 0);
 
             // iterate nodes conecting to previous
             for (i, v) in (&merges[1..merges.len() - 1]).iter().enumerate() {
                 // current node
                 pattern =
-                    pattern + &format!(" MERGE (v{n} :Path {{subpath: '{v}'}})", n = i + 1, v = v);
+                    pattern + &format!(" MERGE (v{n} :PATH {{name: '{v}'}})", n = i + 1, v = v);
                 // connect current to previous node i
                 pattern =
                     pattern + &format!(" MERGE (v{v0}) <-[:SUB]- (v{v1})", v0 = i, v1 = i + 1);
             }
 
             // last node as it has data
-            let ml_data = merges.last().unwrap();
+            let ml = *merges.last().unwrap();
             let l = merges.len() - 1;
-            // pattern = pattern + &format!(" MERGE (v{name} :Value {data})", name = l, data = data); // first node
+            pattern = pattern + &format!(" MERGE (v{vn} :DATA {{name: '{name}', data: '{data}'}})", vn = l, name=ml, data = "lkjlkj"); // first node
             pattern = pattern + &format!(" MERGE (v{v0}) <-[:SUB]- (v{v1})", v0 = l - 1, v1 = l);
             // connect
         }
@@ -132,7 +132,7 @@ mod graph {
         // test single path
         let r = client
             .create_path(
-                "test/tes5/test".to_string(),
+                "test/tes5/test/test5".to_string(),
                 "{name: 'value', test_val:'hello'}".as_bytes().to_vec(),
             )
             .await
