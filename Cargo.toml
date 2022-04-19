@@ -1,0 +1,16 @@
+[package]
+name = "mqtt-state-graph-db-rust"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rumqttc = "0.11.0"
+tokio = "1.17.0"
+env_logger = "0.9.0"
+log = "0.4.14"
+neo4rs = "0.5.9"
+confy = "0.4.0"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1.0"
